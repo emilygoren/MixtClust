@@ -1,0 +1,75 @@
+mixtClust  v0.1-8 (September 7 2018)
+==============
+
+Changes:
+
+* Change marginalization to method, with added option of complete case analysis.
+* Output logic and class for all observations.
+
+
+mixtClust  v0.1-7 (August 21 2018)
+==============
+
+Changes:
+
+* Allow initialization from initial IDs.
+* Add Aitken's acceleration.
+* Fix df approximation formula.
+
+
+mixtClust  v0.1-6 (July 16 2018)
+==============
+
+Changes:
+
+* Better garbage collection?
+
+
+
+mixtClust  v0.1-5 (July 12 2018)
+==============
+
+Changes:
+
+* Remove casting when converting between Rcpp and arma classes.
+* Fix weighing in cov.wt in initializing.
+* Reduce tolerance in root finding.
+
+
+mixtClust  v0.1-4 (July 4 2018)
+==============
+
+Changes:
+
+* Documentation updates.
+* Faster observed density, E-steps.
+* Initialization change to match teigen.
+* Added tests.
+
+
+mixtClust  v0.1-3 (June 29 2018)
+==============
+
+Changes:
+
+* Renamed package and main function.
+* Removed lapply() calls in initialization.
+* Changed nclusters specification in main function.
+
+
+missingtmix v0.1-2
+==============
+
+Changes:
+
+* get.init.val() now fixes NaN values before outputting.
+* Fixed Makevars file.
+* Remove unsupported \mathbb from documentation.
+
+
+missingtmix v0.1-1
+==============
+
+Changes:
+
+* First build.
