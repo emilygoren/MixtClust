@@ -61,7 +61,11 @@
 #' \code{max.iter}). If \code{nbest} is greater than one, the long EM run
 #' achieiving the largest loglikelihood will be returned.} }
 #'
-#' @references Tsung-I Lin & Hsiu Ho & Pao Shen, 2009. "Computationally
+#' @references Emily Goren & Ranjan Maitra, 2021.
+#' "Model-based clustering of partial records," arXiv:2103.16336.
+#' https://arxiv.org/abs/2103.16336
+#' 
+#' Tsung-I Lin & Hsiu Ho & Pao Shen, 2009. "Computationally
 #' efficient learning of multivariate t mixture models with missing
 #' information," Computational Statistics, 24(3): 375-392.
 #'

@@ -2,14 +2,22 @@
 % Please edit documentation in R/main.R, R/zzz.R
 \name{MixtClust}
 \alias{MixtClust}
-\alias{MixtClust}
 \title{Robust Clustering for Complete and Incomplete Data}
 \usage{
-MixtClust(x, initial.values = "emEM", nclusters = NULL, max.iter = 1000,
-  tol = 0.001, convergence = "aitkens", sigma.constr = FALSE,
-  df.constr = FALSE, approx.df = TRUE, method = "marginalization",
-  verbose = TRUE, emEM.args = list(nstarts = nclusters * 10 * prod(dim(x)),
-  em.iter = 5, nbest = 4))
+MixtClust(
+  x,
+  initial.values = "emEM",
+  nclusters = NULL,
+  max.iter = 1000,
+  tol = 0.001,
+  convergence = "aitkens",
+  sigma.constr = FALSE,
+  df.constr = FALSE,
+  approx.df = TRUE,
+  method = "marginalization",
+  verbose = TRUE,
+  emEM.args = list(nstarts = nclusters * 10 * prod(dim(x)), em.iter = 5, nbest = 4)
+)
 }
 \arguments{
 \item{x}{A matrix with \eqn{n} observations (rows), \eqn{p} columns
@@ -127,6 +135,10 @@ plot(BICs ~ Ks, pch = 20, xlab = 'Number of Clusters', ylab = 'BIC')
 
 }
 \references{
+Emily Goren & Ranjan Maitra, 2021.
+"Model-based clustering of partial records," arXiv:2103.16336.
+https://arxiv.org/abs/2103.16336
+
 Tsung-I Lin & Hsiu Ho & Pao Shen, 2009. "Computationally
 efficient learning of multivariate t mixture models with missing
 information," Computational Statistics, 24(3): 375-392.
