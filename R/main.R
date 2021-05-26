@@ -302,7 +302,9 @@ MixtClust <- function(x,
       o$class[CC] <- apply(o$Zs, 1, which.max)
       o$class[idx] <- apply(x[idx, !bad.cols], 1, classify, params = o$estimates)
     }
-    o$loglikn <- loglikelihood(x[idx, !bad.cols], o$estimates) + tail(o$loglik, n=1L)
+    o$loglikn <- tail(o$loglik, n=1L)
+    if (sum(idx) > 0)
+      o$loglikn = o$loglikn + loglikelihood(x[idx, !bad.cols], o$estimates)
   } else {
     o$class[!bad.rows] <- apply(o$Zs, 1, which.max)
     o$loglikn <- tail(o$loglik, n=1L)
