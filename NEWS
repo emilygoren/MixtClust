@@ -1,3 +1,11 @@
+mixtClust  v0.1-10 (May 25 2021)
+==============
+
+Changes:
+
+* Bug fix for method = "deletion" when there are no cases to delete.
+
+
 mixtClust  v0.1-9 (March 30 2021)
 ==============
 
