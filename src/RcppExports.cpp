@@ -227,6 +227,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Q2
+double Q2(arma::mat x, arma::mat z, arma::mat w, NumericVector sigmas, arma::mat mus, arma::vec grp, arma::umat Ru);
+RcppExport SEXP _MixtClust_Q2(SEXP xSEXP, SEXP zSEXP, SEXP wSEXP, SEXP sigmasSEXP, SEXP musSEXP, SEXP grpSEXP, SEXP RuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type z(zSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type w(wSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sigmas(sigmasSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type mus(musSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type grp(grpSEXP);
+    Rcpp::traits::input_parameter< arma::umat >::type Ru(RuSEXP);
+    rcpp_result_gen = Rcpp::wrap(Q2(x, z, w, sigmas, mus, grp, Ru));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_MixtClust_to_array", (DL_FUNC) &_MixtClust_to_array, 3},
@@ -244,6 +261,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_MixtClust_xhatk", (DL_FUNC) &_MixtClust_xhatk, 5},
     {"_MixtClust_up_mu_Lin", (DL_FUNC) &_MixtClust_up_mu_Lin, 4},
     {"_MixtClust_up_Sigmak_Lin", (DL_FUNC) &_MixtClust_up_Sigmak_Lin, 8},
+    {"_MixtClust_Q2", (DL_FUNC) &_MixtClust_Q2, 7},
     {NULL, NULL, 0}
 };
 

@@ -1,3 +1,11 @@
+mixtClust  v0.1-11 (June 21 2021)
+==============
+
+Changes:
+
+* Check that updates for mu and Sigma do not lower the Q function.
+
+
 mixtClust  v0.1-10 (May 25 2021)
 ==============
 

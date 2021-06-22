@@ -46,7 +46,7 @@
 #' two moments.)} \item{"mu"}{ Locations. A \eqn{K \times p} matrix, where the
 #' \eqn{k}-th row is the location \eqn{\mu_k \in R^p} for cluster \eqn{k}.}
 #' \item{"Sigma"}{ Dispersions. A \eqn{p \times p \times K} array, where the
-#' \eqn{k}-th slice is the \eqn{p \times p} positive-definite disperion matrix
+#' \eqn{k}-th slice is the \eqn{p \times p} positive-definite dispersion matrix
 #' \eqn{\Sigma_k} for cluster \eqn{k}.} }
 #'
 #' The arguments for emEM specified in the list \code{emEM.args} are: \itemize{
@@ -59,7 +59,7 @@
 #' parameter values on which to run the long EM either to convergence (specified
 #' by \code{tol}) or maximum number of iterations (specified by
 #' \code{max.iter}). If \code{nbest} is greater than one, the long EM run
-#' achieiving the largest loglikelihood will be returned.} }
+#' achieving the largest loglikelihood will be returned.} }
 #'
 #' @references Emily Goren & Ranjan Maitra, 2021.
 #' "Model-based clustering of partial records," arXiv:2103.16336.

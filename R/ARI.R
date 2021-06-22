@@ -3,7 +3,7 @@
 #' Adjusted Rand Index
 #'
 #' @param class1 A \eqn{n}-vector of class labels.
-#' @param class2 A \eqn{n}-vector of class lables.
+#' @param class2 A \eqn{n}-vector of class labels.
 #' 
 #' @details Compute the adjusted Rand Index comparing the two 
 #' classifications, \code{class1} and \code{class2}.

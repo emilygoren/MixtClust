@@ -99,7 +99,7 @@ entries at least equal to three (thus requiring the existance of the first
 two moments.)} \item{"mu"}{ Locations. A \eqn{K \times p} matrix, where the
 \eqn{k}-th row is the location \eqn{\mu_k \in R^p} for cluster \eqn{k}.}
 \item{"Sigma"}{ Dispersions. A \eqn{p \times p \times K} array, where the
-\eqn{k}-th slice is the \eqn{p \times p} positive-definite disperion matrix
+\eqn{k}-th slice is the \eqn{p \times p} positive-definite dispersion matrix
 \eqn{\Sigma_k} for cluster \eqn{k}.} }
 
 The arguments for emEM specified in the list \code{emEM.args} are: \itemize{
@@ -112,7 +112,7 @@ initial values, the number of top ranking (according to loglikelihood)
 parameter values on which to run the long EM either to convergence (specified
 by \code{tol}) or maximum number of iterations (specified by
 \code{max.iter}). If \code{nbest} is greater than one, the long EM run
-achieiving the largest loglikelihood will be returned.} }
+achieving the largest loglikelihood will be returned.} }
 
 Model-based clustering using finite mixtures of t distributions, with handling of incomplete data using either marginalization or the EM algorithm.
 }

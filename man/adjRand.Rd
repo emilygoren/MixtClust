@@ -9,7 +9,7 @@ adjRand(class1, class2)
 \arguments{
 \item{class1}{A \eqn{n}-vector of class labels.}
 
-\item{class2}{A \eqn{n}-vector of class lables.}
+\item{class2}{A \eqn{n}-vector of class labels.}
 }
 \value{
 A scalar value, taking the value 1 if the two classifications are

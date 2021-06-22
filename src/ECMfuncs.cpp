@@ -169,6 +169,7 @@ arma::vec dMVT(arma::mat x, arma::vec mu, arma::mat sigma, double nu, bool logan
   return ans;
 }
 
+
 //' Multivariate t distribution with missing data
 //'
 //' @description Compute the marginal density of the multivariate t distribution
@@ -198,7 +199,7 @@ arma::vec dMVT(arma::mat x, arma::vec mu, arma::mat sigma, double nu, bool logan
 //' 
 // [[Rcpp::export]]
 arma::vec h(arma::mat x, arma::vec mu, arma::mat sigma, double nu, arma::vec grp, arma::umat Ru) {
-  int n = x.n_rows, p = x.n_cols, M = Ru.n_rows;
+  int n = x.n_rows, M = Ru.n_rows;
   arma::vec ans(n);
   for (int m=0; m<M; m++) {
     int g = m+1;
@@ -219,9 +220,6 @@ arma::vec h(arma::mat x, arma::vec mu, arma::mat sigma, double nu, arma::vec grp
   }
   return ans;
 }
-
-
-
 
 
 // E-step: update Z.
@@ -278,6 +276,7 @@ arma::mat up_W(arma::mat x, arma::mat mus, NumericVector sigmas, arma::vec nus, 
   return ans;
 }
 
+
 // CM-step 1: update pis.
 // [[Rcpp::export]]
 arma::vec up_pi(arma::mat z) {
@@ -291,6 +290,7 @@ arma::vec up_pi(arma::mat z) {
   }
   return ans;
 }
+
 
 // CM-step 2: update mus.
 // [[Rcpp::export]]
@@ -309,7 +309,6 @@ arma::mat up_mu(arma::mat x, arma::mat z, arma::mat w, arma::mat A) {
   }
   return ans;
 }
-
 
 
 // CM-step 2: update Sigmas.
@@ -340,6 +339,7 @@ arma::cube up_Sigma(arma::mat x, arma::mat z, arma::mat w, arma::mat mus, arma::
   }
   return Sigmas;
 }
+
 
 // CM-step 3: update nus -- helper functions for updating cluster-specifc
 // degrees of freedom.
@@ -406,6 +406,7 @@ double rootsolver_nu(NumericVector z_k, NumericVector w_k, double nu_k, NumericV
   gsl_root_fsolver_free (solver);
   return ans;
 }
+
 
 // CM-step 3: update nus -- helper functions for updating constrained (same for
 // all clusters) degrees of freedom.
@@ -481,6 +482,7 @@ double rootsolver_nu_constr(NumericMatrix z, NumericMatrix w, double nu, Numeric
   return ans;
 }
 
+
 // CM-step 3: update nus.
 // [[Rcpp::export]]
 NumericVector up_nu(NumericMatrix z, NumericMatrix w, NumericVector nus, NumericVector ps, bool constr = false, bool approx = false) {
@@ -532,7 +534,6 @@ arma::cube SOiOEOOk(arma::mat sigma, arma::umat Ru) {
   int p = sigma.n_cols, M = Ru.n_rows;
   arma::cube ans(p,p,M);
   for (int m=0; m<M; m++) {
-    int g = m+1;
     arma::uvec oidx = arma::find(Ru.row(m) == 1);
     int pg = oidx.size();
     arma::mat Rg(pg,pg);
@@ -598,4 +599,46 @@ arma::mat up_Sigmak_Lin(int M, arma::vec zk, arma::vec wk, arma::vec mu, arma::m
   }
   arma::mat ans = num / den;
   return ans;
+}
+
+// Compute the Q2 function
+// [[Rcpp::export]]
+double Q2(arma::mat x, arma::mat z, arma::mat w, NumericVector sigmas, arma::mat mus, arma::vec grp, arma::umat Ru) {
+  int K = mus.n_rows, n = x.n_rows, p = x.n_cols, M = Ru.n_rows;
+  arma::cube Sigmas = to_array(sigmas, K, p);
+  arma::mat ans(n, K);
+  for (int m=0; m<M; m++) {
+    int g = m+1;
+    // get obs for this missingness pattern
+    arma::uvec oidx = arma::find(Ru.row(m) == 1);
+    arma::uvec gidx = arma::find(grp == g);
+    int pg = oidx.size();
+    int ng = gidx.size();
+    arma::mat xg = x.submat(gidx, oidx);
+    for (int k=0; k<K; k++) {
+      arma::vec muk = mus.row(k).t();
+      arma::mat sigmak = Sigmas.slice(k);
+      // get mu, cholesky decom of sigma for this missingness pattern
+      arma::vec mukg = muk.elem(oidx);
+      arma::mat sigmakg = sigmak.submat(oidx, oidx);
+      arma::mat Rkg(pg,pg);
+      bool success = arma::chol(Rkg, sigmakg);
+      if (!success) {
+        Rkg = arma::chol(fix_var(sigmakg));
+      }
+      double logDet = sum(arma::log(Rkg.diag()));
+      arma::vec maha = mahalanobis(xg, mukg, Rkg, true);
+      for (int i=0; i<ng; i++) {
+        int idx = gidx(i);
+        ans(idx, k) = z(idx,k) / 2.0 * ( - logDet - w(idx,k) * maha(i) );
+      }
+    }
+  }
+  double out = 0;
+  for (int k=0; k<K; k++) {
+    for (int i=0; i<n; i++) {
+      out += ans(i,k);
+    }
+  }
+  return out;
 }

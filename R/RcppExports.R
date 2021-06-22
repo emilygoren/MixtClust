@@ -134,3 +134,7 @@ up_Sigmak_Lin <- function(M, zk, wk, mu, sigma, xhatk, grp, SOiOEOOk) {
     .Call(`_MixtClust_up_Sigmak_Lin`, M, zk, wk, mu, sigma, xhatk, grp, SOiOEOOk)
 }
 
+Q2 <- function(x, z, w, sigmas, mus, grp, Ru) {
+    .Call(`_MixtClust_Q2`, x, z, w, sigmas, mus, grp, Ru)
+}
+

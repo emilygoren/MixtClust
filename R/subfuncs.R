@@ -6,7 +6,7 @@ row_match <- function(row, matrix) {
 }
 
 # Perform one EM iteration (of all ECM steps).
-EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization) {
+EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization, Q2old = NULL) {
   k <- length(oldpars$pi)
   # 1st cycle -- update cluster proportions, means, dfs
   if (k > 1) {
@@ -17,6 +17,7 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
     pisnew <- 1
   }
   w <- up_W(x, oldpars$mu, oldpars$Sigma, oldpars$nu, miss.grp, Ru)
+  if (is.null(Q2old)) Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
   if (marginalization) {
     # update locations
     musnew <- up_mu(x, z, w, A)
@@ -30,6 +31,8 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
     # update locations
     musnew <- up_mu_Lin(p, z, w, xhat)
   }
+  Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
+  if (Q2old > Q2newMu) musnew <- oldpars$mu
   nusnew <- as.numeric(up_nu(z, w, oldpars$nu, ps, df.constr, approx.df))
   bidx <- !is.finite(nusnew); nusnew[bidx] <- oldpars$nu[bidx] # fix any NaN
   # 2nd cycle -- update dispersions
@@ -47,6 +50,8 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
       for (k in 1:K) Sigmasnew[,,k] <- Ss
     }
   }
+  Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
+  if (Q2newMu > Q2newSigma) Sigmasnew <- oldpars$Sigma
   # Output
   newpars <- list(pisnew, nusnew, musnew, Sigmasnew)
   names(newpars) <- c('pi', 'nu', 'mu', 'Sigma')
