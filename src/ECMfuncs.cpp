@@ -626,7 +626,7 @@ double Q2(arma::mat x, arma::mat z, arma::mat w, NumericVector sigmas, arma::mat
       if (!success) {
         Rkg = arma::chol(fix_var(sigmakg));
       }
-      double logDet = sum(arma::log(Rkg.diag()));
+      double logDet = 2.0 * sum(arma::log(Rkg.diag()));
       arma::vec maha = mahalanobis(xg, mukg, Rkg, true);
       for (int i=0; i<ng; i++) {
         int idx = gidx(i);
