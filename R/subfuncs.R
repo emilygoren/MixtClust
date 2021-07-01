@@ -8,7 +8,9 @@ row_match <- function(row, matrix) {
 # Perform one EM iteration (of all ECM steps).
 EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization, Q2old = NULL) {
   k <- length(oldpars$pi)
-  # 1st cycle -- update cluster proportions, means, dfs
+  ## 1st cycle -- update cluster proportions, means, dfs
+  ## E-step followed by CM-step for pi
+  w <- up_W(x, oldpars$mu, oldpars$Sigma, oldpars$nu, miss.grp, Ru)
   if (k > 1) {
     z <- up_Z(x, oldpars$mu, oldpars$Sigma, oldpars$nu, oldpars$pi, miss.grp, Ru)
     pisnew <- as.numeric(up_pi(z))
@@ -16,98 +18,58 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
     z <- matrix(1, nrow(x), k)
     pisnew <- 1
   }
-  w <- up_W(x, oldpars$mu, oldpars$Sigma, oldpars$nu, miss.grp, Ru)
-  if (is.null(Q2old)) Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
   if (marginalization) {
-    # update locations
-    musnew <- up_mu(x, z, w, A)
+      ## calculate Q2 before
+      if (is.null(Q2old))
+          Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
+      ## update locations 
+      musnew <- up_mu(x, z, w, A)
+      Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
+      if (Q2old > Q2newMu) {
+          musnew <- oldpars$mu
+          cat("Q2old = \n", Q2old, "Q2newMu" = Q2newMu, "musnew no good\n")
+      }
   } else {
     K <- ncol(z)
     M <- length(unique(miss.grp))
     p <- ncol(x)
-    # EM for missing components
+    ## EM for missing components
     SOiOEOO <- lapply(1:K, function(k) SOiOEOOk(oldpars$Sigma[,,k], Ru))
     xhat <- lapply(1:K, function(k) xhatk(x, oldpars$mu[k,], miss.grp, M, SOiOEOO[[k]]))
     # update locations
     musnew <- up_mu_Lin(p, z, w, xhat)
   }
-  Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
-  if (Q2old > Q2newMu) musnew <- oldpars$mu
+  ## update nu's
   nusnew <- as.numeric(up_nu(z, w, oldpars$nu, ps, df.constr, approx.df))
   bidx <- !is.finite(nusnew); nusnew[bidx] <- oldpars$nu[bidx] # fix any NaN
-  # 2nd cycle -- update dispersions
-  if (k > 1) z <- up_Z(x, musnew, oldpars$Sigma, nusnew, pisnew, miss.grp, Ru)
+  ## 2nd cycle -- update dispersions
+  if (k > 1)
+      z <- up_Z(x, musnew, oldpars$Sigma, nusnew, pisnew, miss.grp, Ru)
   w <- up_W(x, musnew, oldpars$Sigma, nusnew, miss.grp, Ru)
   if (marginalization) {
-    Sigmasnew <- up_Sigma(x, z, w, musnew, A, sigma.constr)
+    ## calculate Q2 before
+      Q2old <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
+      Sigmasnew <- up_Sigma(x, z, w, musnew, A, sigma.constr)
+      Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
+      if (Q2old > Q2newSigma) {
+          Sigmasnew <- oldpars$Sigma
+          cat("Q2old = \n", Q2newMu, "Q2newSigma" = Q2newSigma, "Sigmasnew no good\n")
+      }
   } else {
-    Sigmasnew <- sapply(1:K, 
-                        function(k) up_Sigmak_Lin(M, z[,k], w[,k], musnew[k,], oldpars$Sigma[,,k], xhat[[k]], miss.grp, SOiOEOO[[k]]), 
-                        simplify = 'array')
+      Sigmasnew <- sapply(1:K, 
+                          function(k) up_Sigmak_Lin(M, z[,k], w[,k], musnew[k,], oldpars$Sigma[,,k], xhat[[k]], miss.grp, SOiOEOO[[k]]), 
+                          simplify = 'array')
     if (sigma.constr) {
-      wtdSigmas <- lapply(1:K, function(k) pisnew[k]*Sigmasnew[,,k])
-      Ss <- Reduce('+', wtdSigmas)
-      for (k in 1:K) Sigmasnew[,,k] <- Ss
+        wtdSigmas <- lapply(1:K, function(k) pisnew[k]*Sigmasnew[,,k])
+        Ss <- Reduce('+', wtdSigmas)
+        for (k in 1:K) Sigmasnew[,,k] <- Ss
     }
   }
-  Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
-  if (Q2newMu > Q2newSigma) Sigmasnew <- oldpars$Sigma
-  # Output
+  ## Output
   newpars <- list(pisnew, nusnew, musnew, Sigmasnew)
   names(newpars) <- c('pi', 'nu', 'mu', 'Sigma')
   return(newpars)
 }
-
-
-EM_iterOLD <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization) {
-  k <- length(oldpars$pi)
-  # 1st cycle -- update cluster proportions
-  if (k > 1) {
-    z <- up_Z(x, oldpars$mu, oldpars$Sigma, oldpars$nu, oldpars$pi, miss.grp, Ru)
-    pisnew <- as.numeric(up_pi(z))
-  } else {
-    z <- matrix(1, nrow(x), k)
-    pisnew <- 1
-  }
-  # 2nd cycle -- update locations and dispersions
-  if (k > 1) z <- up_Z(x, oldpars$mu, oldpars$Sigma, oldpars$nu, pisnew, miss.grp, Ru)
-  w <- up_W(x, oldpars$mu, oldpars$Sigma, oldpars$nu, miss.grp, Ru)
-  if (marginalization) {
-    # update locations
-    musnew <- up_mu(x, z, w, A)
-    # update dispersions
-    Sigmasnew <- up_Sigma(x, z, w, musnew, A, sigma.constr)
-  } else {
-    K <- ncol(z)
-    M <- length(unique(miss.grp))
-    p <- ncol(x)
-    # EM for missing components
-    SOiOEOO <- lapply(1:K, function(k) SOiOEOOk(oldpars$Sigma[,,k], Ru))
-    xhat <- lapply(1:K, function(k) xhatk(x, oldpars$mu[k,], miss.grp, M, SOiOEOO[[k]]))
-    # update locations
-    musnew <- up_mu_Lin(p, z, w, xhat)
-    # update dispersions
-    Sigmasnew <- sapply(1:K, 
-                       function(k) up_Sigmak_Lin(M, z[,k], w[,k], musnew[k,], oldpars$Sigma[,,k], xhat[[k]], miss.grp, SOiOEOO[[k]]), 
-                       simplify = 'array')
-    if (sigma.constr) {
-      pisnewnew <- as.numeric(up_pi(z))
-      wtdSigmas <- lapply(1:K, function(k) pisnewnew[k]*Sigmasnew[,,k])
-      Ss <- Reduce('+', wtdSigmas)
-      for (k in 1:K) Sigmasnew[,,k] <- Ss
-    }
-  }
-  # 3rd cycle -- update dfs
-  if (k > 1) z <- up_Z(x, musnew, Sigmasnew, oldpars$nu, pisnew, miss.grp, Ru)
-  w <- up_W(x, musnew, Sigmasnew, oldpars$nu, miss.grp, Ru)
-  nusnew <- as.numeric(up_nu(z, w, oldpars$nu, ps, df.constr, approx.df))
-  bidx <- !is.finite(nusnew); nusnew[bidx] <- oldpars$nu[bidx] # fix any NaN
-  # Output
-  newpars <- list(pisnew, nusnew, musnew, Sigmasnew)
-  names(newpars) <- c('pi', 'nu', 'mu', 'Sigma')
-  return(newpars)
-}
-
 
 # Function to generate a set of initial parameter values.
 get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "uniform", Z = NULL) {
@@ -183,6 +145,7 @@ run.EM <- function(init, nclusters, X, miss.grp, A, Ru, ps, max.iter, tol, conve
     new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization)
     newL <- sapply(1:nclusters, function(k) {new$pi[k] * h(X, new$mu[k,], new$Sigma[,,k], new$nu[k], miss.grp, Ru)})
     newLLn <- sum(log(rowSums(newL)))
+#    cat("ITER =", iter, "newLLn" = newLLn, "\n")
     LLs[iter+1] <- newLLn
     old <- new
     # Stop if loglik didn't change or went down
