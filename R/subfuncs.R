@@ -27,7 +27,7 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
       Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
       if (Q2old > Q2newMu) {
           musnew <- oldpars$mu
-          cat("Q2old = \n", Q2old, "Q2newMu" = Q2newMu, "musnew no good\n")
+      ##    cat("Q2old = \n", Q2old, "Q2newMu" = Q2newMu, "musnew no good\n")
       }
   } else {
     K <- ncol(z)
@@ -53,7 +53,7 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
       Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
       if (Q2old > Q2newSigma) {
           Sigmasnew <- oldpars$Sigma
-          cat("Q2old = \n", Q2newMu, "Q2newSigma" = Q2newSigma, "Sigmasnew no good\n")
+          ## cat("Q2old = \n", Q2newMu, "Q2newSigma" = Q2newSigma, "Sigmasnew no good\n")
       }
   } else {
       Sigmasnew <- sapply(1:K, 
@@ -145,7 +145,7 @@ run.EM <- function(init, nclusters, X, miss.grp, A, Ru, ps, max.iter, tol, conve
     new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization)
     newL <- sapply(1:nclusters, function(k) {new$pi[k] * h(X, new$mu[k,], new$Sigma[,,k], new$nu[k], miss.grp, Ru)})
     newLLn <- sum(log(rowSums(newL)))
-#    cat("ITER =", iter, "newLLn" = newLLn, "\n")
+##    cat("ITER =", iter, "newLLn" = newLLn, "\n")
     LLs[iter+1] <- newLLn
     old <- new
     # Stop if loglik didn't change or went down
