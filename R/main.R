@@ -33,7 +33,7 @@
 #'   screen?
 #' @param emEM.args A named list of options utilized if \code{initial.values =
 #'   "emEM"} (see details).
-#' @param scaled Logical variable that indicates if computations should be done after scaling the dataset. Note that the resulting parameters are scaled back and so should not theoretically have much effect on the performance, except to potentially offer stability in numerical computations. 
+#' @param scaled Logical variable that indicates if computations for multi-dimensional datasets should be done after scaling the dataset. Note that the resulting parameters are scaled back and so should not theoretically have much effect on the performance, except to potentially offer stability in numerical computations. 
 #'
 #' @details
 #'
@@ -320,7 +320,7 @@ MixtClust <- function(x,
   if (scaled) {
       ## scale the estimates back
       o$estimates$mu <- t(v * t(o$estimates$mu))
-      for (k in 1:K) {
+      for (k in 1:nclusters) {
           o$estimates$Sigma[ , , k]  <- diag(v) %*%  o$estimates$Sigma[ , , k] %*% diag(v)
       }
   }
