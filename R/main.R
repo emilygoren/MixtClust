@@ -1,4 +1,3 @@
-
 #' Robust Clustering for Complete and Incomplete Data
 #'
 #' @description Clustering using finite mixture of multivariate t distributions
@@ -205,7 +204,7 @@ MixtClust <- function(x,
         nclusters, X, 
         miss.grp, A, R, Ru, ps, 
         em.iter, sigma.constr, df.constr, marginalization, 
-        init = "uniform")
+        init = "smart-random")
       shortEMll[st] <- tmp$loglik
       # save estimates if candidates for nbest logliks
       if (st <= nbest) {
