@@ -33,6 +33,7 @@
 #'   screen?
 #' @param emEM.args A named list of options utilized if \code{initial.values =
 #'   "emEM"} (see details).
+#' @param scaled Logical variable that indicates if computations should be done after scaling the dataset. Note that the resulting parameters are scaled back and so should not theoretically have much effect on the performance, except to potentially offer stability in numerical computations. 
 #'
 #' @details
 #'
@@ -119,6 +120,7 @@ MixtClust <- function(x,
                       approx.df = TRUE,
                       method = "marginalization",
                       verbose = TRUE,
+                      scaled = TRUE,
                       emEM.args = list(nstarts = nclusters*10*prod(dim(x)), em.iter = 5, nbest = 4)) 
 {
   mf <- match.call(expand.dots = FALSE)
@@ -153,6 +155,13 @@ MixtClust <- function(x,
   # Remove observations with no observed coordinates and coordinates with no observations.
   bad.rows <- rowSums(R) == ncol(x)
   bad.cols <- colSums(R) == nrow(x)
+
+  if (scaled) {
+      # if scaled computations are desired, make sure that the data are scaled for each coordinate to have sd 1.
+      x <- scale(x, center = FALSE, scale = T)
+      v <- attr(x,"scaled:scale")
+  }
+  
   CC <- (rowSums(R) == 0)
   if (any(bad.rows))
     message(paste("Removing rows with no observations:", which(bad.rows)))
@@ -308,10 +317,17 @@ MixtClust <- function(x,
     o$class[!bad.rows] <- apply(o$Zs, 1, which.max)
     o$loglikn <- tail(o$loglik, n=1L)
   }
+  if (scaled) {
+      ## scale the estimates back
+      o$estimates$mu <- t(v * t(o$estimates$mu))
+      for (k in 1:K) {
+          o$estimates$Sigma[ , , k]  <- diag(v) %*%  o$estimates$Sigma[ , , k] %*% diag(v)
+      }
+  }
   o$EM.time <- EM.time
   o$em.time <- em.time
   o$total.time <- EM.time + em.time
   o$call <- mf
   o$npar <- npar
-  return(o)
+  o
 }
