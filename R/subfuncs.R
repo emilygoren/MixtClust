@@ -82,8 +82,13 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
     if (df.constr) nus <- rep(nus[1], K)
     n <- nrow(X); p <- ncol(X)
 
-    if (init == "smart-random") {    
+    if (init == "smart-random")
+        old.inits <- FALSE else
+                              old.inits  <- TRUE
+        
+    if (!old.inits) {    
         ## smart random initialization chooses random points in sequence from the dataset with probability inversely proportional to the distance from (the closest of) the previous points. We use the kmmeans with 0 iterations to achieve this. Note that this function can handle missing data and so does not particularly care over missing cases, and can handle them fine.
+        ## because we check so much, there is a chance we may never come out so we limit it to ten tries, otherwise we bail out and go over to EMG's uniform initialization
         y <- X
         y[R] <- NA
         Sigmas <- array(0, dim=c(p, p, K))
@@ -93,12 +98,14 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
             mus <- matrix(colMeans(y,na.rm=T), nrow = 1)
         } else {
             sigmas.stab <- F
-            while (!sigmas.stab) {
+            grand.iter  <- 1
+            while ((!sigmas.stab) & (grand.iter < 10)) {
                 res <- kmmeans::kmmeans(data = as.data.frame(y), K = K, n.init = 1, kmmns.iter = 0)
                 res$partition <- res$partition + 1
                 nks <- table(res$partition)
                 if (min(nks) > p) {
-                    ## don't even bother otherwise (perhaps can and should be made even more stringent)                
+                    ## don't even bother otherwise (perhaps can and should be made even more stringent)
+                    grand.iter  <- grand.iter  + 1
                     pis <- table(res$partition)/n
                     mus <- res$centers
                     for (k in 1:K) {
@@ -118,9 +125,13 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
                     }
                 }
             }
+            if (!sigmas.stab)
+                old.inits  <- TRUE
         }
+        if (old.inits)
+            init  <- "uniform"
     }
-    else {
+    if (old.inits) {
         minstable <- p/n
         CC <- rowSums(R) == 0
             ## Uniform initialization of z.
