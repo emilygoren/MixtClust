@@ -242,7 +242,8 @@ run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df
         while (iter < niter) {
             new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df = TRUE, marginalization)
             old <- new
-            test <- are.sigmas.valid(new$Sigma)
+            ##test <- are.sigmas.valid(new$Sigma)
+            test <- TRUE
             ## cat(iter,"in run.em", test, "\n")
             if (!test) {
                 llhd <- -Inf
