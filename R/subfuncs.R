@@ -233,7 +233,7 @@ run.EM <- function(init, nclusters, X, miss.grp, A, Ru, ps, max.iter, tol, conve
 }
 
 ## Run an initialization with short em -- don't keep track of LL, BIC, etc to save time
-run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df.constr, marginalization, init = "smart-random") {
+run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df.constr, marginalization, init = "uniform") {
     ## print("entering run.em")
     llhd = -Inf
     while (!is.finite(llhd))    {
