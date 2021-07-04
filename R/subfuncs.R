@@ -6,7 +6,7 @@ row_match <- function(row, matrix) {
 }
 
 ## Perform one EM iteration (of all ECM steps).
-EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization, Q2old = NULL) {
+EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df, marginalization) {
     k <- length(oldpars$pi)
     ## 1st cycle -- update cluster proportions, means, dfs
     ## E-step followed by CM-step for pi
@@ -21,8 +21,7 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
     }
     if (marginalization) {
         ## calculate Q2 before
-        if (is.null(Q2old))
-            Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
+        Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
         ## update locations 
         musnew <- up_mu(x, z, w, A)
         Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
@@ -74,10 +73,10 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
 
 ## Function to generate a set of initial parameter values.
 get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random", Z = NULL, eps = 1e-3) {
-                                        # Draw transformation parameter, degrees of freedom, proportions uniformly.
-                                        #if (df.constr) nus <- rep(runif(1, 5, 25), K) else nus <- runif(K, 5, 25)
-                                        # Follow teigen: set dfstart to 50
-                                        #nus <- runif(K, min = 10, max = 50)
+    ## Draw transformation parameter, degrees of freedom, proportions uniformly.
+    ##if (df.constr) nus <- rep(runif(1, 5, 25), K) else nus <- runif(K, 5, 25)
+    ## Follow teigen: set dfstart to 50
+    ##nus <- runif(K, min = 10, max = 50)
     nus <- rep(50, K)
     if (df.constr) nus <- rep(nus[1], K)
     n <- nrow(X); p <- ncol(X)
@@ -88,7 +87,7 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
         
     if (!old.inits) {    
         ## smart random initialization chooses random points in sequence from the dataset with probability inversely proportional to the distance from (the closest of) the previous points. We use the kmmeans with 0 iterations to achieve this. Note that this function can handle missing data and so does not particularly care over missing cases, and can handle them fine.
-        ## because we check so much, there is a chance we may never come out so we limit it to ten tries, otherwise we bail out and go over to EMG's uniform initialization
+        ## because we check so much, there is a chance we may never come out so we limit it to five tries, otherwise we bail out and go over to EMG's uniform initialization (which may give rise to other issues, though)
         y <- X
         y[R] <- NA
         Sigmas <- array(0, dim=c(p, p, K))
@@ -99,7 +98,7 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
         } else {
             sigmas.stab <- F
             grand.iter  <- 1
-            while ((!sigmas.stab) & (grand.iter < 10)) {
+            while ((!sigmas.stab) & (grand.iter < 5)) {
                 res <- kmmeans::kmmeans(data = as.data.frame(y), K = K, n.init = 1, kmmns.iter = 0)
                 res$partition <- res$partition + 1
                 nks <- table(res$partition)
@@ -243,7 +242,7 @@ run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df
         while (iter < niter) {
             new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df = TRUE, marginalization)
             old <- new
-            test  <- TRUE ## test <- are.sigmas.valid(new$Sigma)
+            test <- are.sigmas.valid(new$Sigma)
             ## cat(iter,"in run.em", test, "\n")
             if (!test) {
                 llhd <- -Inf
