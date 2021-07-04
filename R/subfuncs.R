@@ -97,8 +97,8 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
             mus <- matrix(colMeans(y,na.rm=T), nrow = 1)
         } else {
             sigmas.stab <- F
-            grand.iter  <- 1
-            while ((!sigmas.stab) & (grand.iter < 5)) {
+            grand.iter  <- 0
+            while ((!sigmas.stab) & (grand.iter < 1)) {
                 res <- kmmeans::kmmeans(data = as.data.frame(y), K = K, n.init = 1, kmmns.iter = 0)
                 res$partition <- res$partition + 1
                 nks <- table(res$partition)
@@ -237,13 +237,12 @@ run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df
     ## print("entering run.em")
     llhd = -Inf
     while (!is.finite(llhd))    {
-        old <- get.init.val(X, R, nclusters, df.constr, sigma.constr, init)
+        old <- get.init.val(X, R, nclusters, df.constr, sigma.constr, init = "uniform")
         iter <- 0
         while (iter < niter) {
             new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df = TRUE, marginalization)
             old <- new
-            ##test <- are.sigmas.valid(new$Sigma)
-            test <- TRUE
+            test <- are.sigmas.valid(new$Sigma)
             ## cat(iter,"in run.em", test, "\n")
             if (!test) {
                 llhd <- -Inf
