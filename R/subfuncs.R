@@ -98,7 +98,7 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
         } else {
             sigmas.stab <- F
             grand.iter  <- 0
-            while ((!sigmas.stab) & (grand.iter < 1)) {
+            while ((!sigmas.stab) & (grand.iter < 5)) {
                 res <- kmmeans::kmmeans(data = as.data.frame(y), K = K, n.init = 1, kmmns.iter = 0)
                 res$partition <- res$partition + 1
                 nks <- table(res$partition)
@@ -233,7 +233,7 @@ run.EM <- function(init, nclusters, X, miss.grp, A, Ru, ps, max.iter, tol, conve
 }
 
 ## Run an initialization with short em -- don't keep track of LL, BIC, etc to save time
-run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df.constr, marginalization, init = "uniform") {
+run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df.constr, marginalization, init = "smart-random") {
     ## print("entering run.em")
     llhd = -Inf
     while (!is.finite(llhd))    {
