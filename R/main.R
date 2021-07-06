@@ -163,9 +163,9 @@ MixtClust <- function(x,
   }
   
   CC <- (rowSums(R) == 0)
-  if (any(bad.rows))
+  if (any(bad.rows) & (verbose))
     message(paste("Removing rows with no observations:", which(bad.rows)))
-  if (any(bad.cols))
+  if (any(bad.cols) & (verbose))
     message(paste("Removing columns with no observations:", which(bad.cols)))
   if (method == "deletion") { # Also remove non-complete cases
     Y <- X <- x[CC, !bad.cols]
