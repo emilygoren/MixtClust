@@ -13,6 +13,7 @@
 #' @importFrom stats runif
 #' @importFrom stats cov.wt
 #' @importFrom stats kmeans
+#' @importFrom kmmeans kmmeans
 #' @importFrom utils tail
 #' 
 #' @useDynLib MixtClust, .registration = TRUE

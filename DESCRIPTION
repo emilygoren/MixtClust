@@ -1,12 +1,14 @@
 Package: MixtClust
 Type: Package
 Title: Robust Clustering for Complete and Incomplete Data
-Version: 0.1-11
-Date: 2021-06-21
-Author: Emily Goren [aut, cre]
+Version: 0.1-12
+Date: 2021-07-05
+Author: Emily Goren [aut, cre], Ranjan Maitra [aut]
 Maintainer: Emily Goren <emily.goren@gmail.com>
 Authors@R: person("Emily", "Goren", email = "emily.goren@gmail.com",
                   role = c("aut", "cre"))
+           person("Ranjan", "Maitra", email = "maitra@iastate.edu",
+                  role = c("aut"))
 Description: Model-based clustering using finite mixtures of t distributions, with handling of incomplete data using either marginalization or the EM algorithm.
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.17)

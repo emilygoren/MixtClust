@@ -16,6 +16,7 @@ MixtClust(
   approx.df = TRUE,
   method = "marginalization",
   verbose = TRUE,
+  scaled = TRUE,
   emEM.args = list(nstarts = nclusters * 10 * prod(dim(x)), em.iter = 5, nbest = 4)
 )
 }
@@ -58,6 +59,8 @@ freedom \eqn{\nu_k} for \eqn{k = 1,\dots,K}.}
 
 \item{verbose}{Logical. Should progress be periodically reported to the
 screen?}
+
+\item{scaled}{Logical variable that indicates if computations for multi-dimensional datasets should be done after scaling the dataset. Note that the resulting parameters are scaled back and so should not theoretically have much effect on the performance, except to potentially offer stability in numerical computations.}
 
 \item{emEM.args}{A named list of options utilized if \code{initial.values =
 "emEM"} (see details).}
