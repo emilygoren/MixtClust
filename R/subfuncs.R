@@ -85,7 +85,7 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
     
     if (!old.inits) {    
         ## smart random initialization chooses random points in sequence from the dataset with probability inversely proportional to the distance from (the closest of) the previous points. We use the kmmeans with 0 iterations to achieve this. Note that this function can handle missing data and so does not particularly care over missing cases, and can handle them fine.
-        ## because we use pairwise complete observations to calculate the estimates of the Sigmas, it is possible that these are singular. So, instead of checking for stability as we were doing earlier, we simply add a small value to the doagonal (0.01 times the smallest variance to make the matrix more singular). 
+        ## because we use pairwise complete observations to calculate the estimates of the Sigmas, it is possible that these are singular. So, instead of checking for stability as we were doing earlier, we simply add a small value to the doagonal (0.001 times the identity matrix) to make the matrix more non-singular). 
         y <- X
         y[R] <- NA # recreate the data matrix with NAs for call to kmmeans
         Sigmas <- array(0, dim=c(p, p, K))
@@ -99,18 +99,21 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
             ##            while ((!sigmas.stab) & (grand.iter < 5)) {
             minnks <- 0
             while (minnks <= p) {
+                ## Let us at least put in at least p + 1 observation pairs in each group
                 ## cat("minnks = ", minnks, "\n")
                 res <- kmmeans::kmmeans(data = as.data.frame(y), K = K, n.init = 1, kmmns.iter = 0)
                 res$partition <- res$partition + 1
-                nks <- table(res$partition)
-                minnks <- min(nks)
+                minks <- sapply(1:K, function(x)(min(crossprod(!R[res$partition==x,]))))
+                minnks <- min(minks)
                 ## cat("minnks = ", minnks, "\n")
             }
+            
+            nks <- table(res$partition)
             pis <- nks/n
             mus <- res$centers
             for (k in 1:K) {
                 Sigmas[,,k] <- cov(y[res$partition==k,], use = "pairwise.complete.obs")
-                Sigmas[,,k]  <- Sigmas[,,k] + min(diag(Sigmas[,,k])) * diag(p)
+                Sigmas[,,k]  <- Sigmas[,,k] + 1e-3 * diag(p)
             }
         }
     } else     {
@@ -211,7 +214,8 @@ run.EM <- function(init, nclusters, X, miss.grp, A, Ru, ps, max.iter, tol, conve
                 Zs = Zs, 
                 loglik = LLs[2:(iter+1)], 
                 bic = BIC)
-    ##    print("exiting run.EM")
+#    print("exiting run.EM")
+#    print(res)
     return(res)
 }
 
