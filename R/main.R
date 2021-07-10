@@ -59,16 +59,23 @@
 #' parameter values on which to run the long EM either to convergence (specified
 #' by \code{tol}) or maximum number of iterations (specified by
 #' \code{max.iter}). If \code{nbest} is greater than one, the long EM run
-#' achieving the largest loglikelihood will be returned.} }
+#' achieving the largest loglikelihood will be returned.}
+#' 
+#' Note that because of how the 'marginalization' algorithm is derived, it is
+#' recommended to use em.iter = 1,  this results in the Rnd-EM algorithm of
+#' Maitra (2009) when using 'marginalization'
+#' }
 #'
 #' @references Emily Goren & Ranjan Maitra, 2021.
 #' "Model-based clustering of partial records," arXiv:2103.16336.
 #' https://arxiv.org/abs/2103.16336
 #' 
+#' Ranjan Maitra, 2009. "Initializing optimization partitioning algorithms," ACM/IEEE Transactions on Computational Biology and Bioinformatics, 6:1:144–157.
+#' 
 #' Tsung-I Lin & Hsiu Ho & Pao Shen, 2009. "Computationally
 #' efficient learning of multivariate t mixture models with missing
 #' information," Computational Statistics, 24(3): 375-392.
-#'
+#'#' 
 #' @return A list containing: \itemize{ \item{"estimates"}{ A list of the final
 #'   estimates "pi", "nu", "mu", and "Sigma" containing the MLEs for the mixing
 #'   proportions, degrees of freedom, locations, and dispersions, respectively.}
@@ -121,7 +128,7 @@ MixtClust <- function(x,
                       method = "marginalization",
                       verbose = TRUE,
                       scaled = TRUE,
-                      emEM.args = list(nstarts = nclusters*10*prod(dim(x)), em.iter = 5, nbest = 4)) 
+                      emEM.args = list(nstarts = sqrt(nclusters*prod(dim(x))), em.iter = 1, nbest = 10)) 
 {
   mf <- match.call(expand.dots = FALSE)
   #######################################################

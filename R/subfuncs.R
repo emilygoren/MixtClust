@@ -1,5 +1,4 @@
-
-                                        # Row match: return row numbers of matrix that have rows equal to row.
+## Row match: return row numbers of matrix that have rows equal to row.
 row_match <- function(row, matrix) {
     ans <- apply(matrix, 1, function(r) all.equal(row, r) == TRUE)
     return(which(ans == TRUE))
@@ -21,14 +20,14 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
     }
     if (marginalization) {
         ## calculate Q2 before
-        Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
+        ##        Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
         ## update locations 
         musnew <- up_mu(x, z, w, A)
-        Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
-        if (Q2old > Q2newMu) {
-            musnew <- oldpars$mu
-            ##    cat("Q2old = \n", Q2old, "Q2newMu" = Q2newMu, "musnew no good\n")
-        }
+        ##        Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
+        ##        if (Q2old > Q2newMu) {
+        ##            musnew <- oldpars$mu
+        ##    cat("Q2old = \n", Q2old, "Q2newMu" = Q2newMu, "musnew no good\n")
+        ##        }
     } else {
         K <- ncol(z)
         M <- length(unique(miss.grp))
@@ -48,13 +47,13 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
     w <- up_W(x, musnew, oldpars$Sigma, nusnew, miss.grp, Ru)
     if (marginalization) {
         ## calculate Q2 before
-        Q2old <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
+        ##        Q2old <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
         Sigmasnew <- up_Sigma(x, z, w, musnew, A, sigma.constr)
-        Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
-        if (Q2old > Q2newSigma) {
-            Sigmasnew <- oldpars$Sigma
-            ## cat("Q2old = \n", Q2newMu, "Q2newSigma" = Q2newSigma, "Sigmasnew no good\n")
-        }
+        ##        Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
+        ##        if (Q2old > Q2newSigma) {
+        ##            Sigmasnew <- oldpars$Sigma
+        ## cat("Q2old = \n", Q2newMu, "Q2newSigma" = Q2newSigma, "Sigmasnew no good\n")
+        ##        }
     } else {
         Sigmasnew <- sapply(1:K, 
                             function(k) up_Sigmak_Lin(M, z[,k], w[,k], musnew[k,], oldpars$Sigma[,,k], xhat[[k]], miss.grp, SOiOEOO[[k]]), 
@@ -72,8 +71,7 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
 }
 
 ## Function to generate a set of initial parameter values.
-get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random", Z = NULL, eps = 1e-3) {
-    ## Draw transformation parameter, degrees of freedom, proportions uniformly.
+get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random", Z = NULL) {
     ##if (df.constr) nus <- rep(runif(1, 5, 25), K) else nus <- runif(K, 5, 25)
     ## Follow teigen: set dfstart to 50
     ##nus <- runif(K, min = 10, max = 50)
@@ -83,99 +81,84 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
 
     if (init == "smart-random")
         old.inits <- FALSE else
-                              old.inits  <- TRUE
-        
+                               old.inits  <- TRUE
+    
     if (!old.inits) {    
         ## smart random initialization chooses random points in sequence from the dataset with probability inversely proportional to the distance from (the closest of) the previous points. We use the kmmeans with 0 iterations to achieve this. Note that this function can handle missing data and so does not particularly care over missing cases, and can handle them fine.
-        ## because we check so much, there is a chance we may never come out so we limit it to five tries, otherwise we bail out and go over to EMG's uniform initialization (which may give rise to other issues, though)
+        ## because we use pairwise complete observations to calculate the estimates of the Sigmas, it is possible that these are singular. So, instead of checking for stability as we were doing earlier, we simply add a small value to the doagonal (0.01 times the smallest variance to make the matrix more singular). 
         y <- X
-        y[R] <- NA
+        y[R] <- NA # recreate the data matrix with NAs for call to kmmeans
         Sigmas <- array(0, dim=c(p, p, K))
         if (K == 1) {
             Sigmas[,,1]  <- cov(y, use = "pairwise.complete.obs")
             pis <- 1
             mus <- matrix(colMeans(y,na.rm=T), nrow = 1)
         } else {
-            sigmas.stab <- F
-            grand.iter  <- 0
-            while ((!sigmas.stab) & (grand.iter < 5)) {
+            ##            sigmas.stab <- F 
+            ##            grand.iter  <- 0
+            ##            while ((!sigmas.stab) & (grand.iter < 5)) {
+            minnks <- 0
+            while (minnks <= p) {
+                ## cat("minnks = ", minnks, "\n")
                 res <- kmmeans::kmmeans(data = as.data.frame(y), K = K, n.init = 1, kmmns.iter = 0)
                 res$partition <- res$partition + 1
                 nks <- table(res$partition)
-                if (min(nks) > p) {
-                    ## don't even bother otherwise (perhaps can and should be made even more stringent)
-                    grand.iter  <- grand.iter  + 1
-                    pis <- table(res$partition)/n
-                    mus <- res$centers
-                    for (k in 1:K) {
-                        Sigmas[,,k] <- cov(y[res$partition==k,], use = "pairwise.complete.obs")
-                        if (any(is.na(Sigmas[,,k])) | max(diag(Sigmas[,,k]) < eps*0.01))
-                            break
-                        eig.s <- eigen(Sigmas[,,k], symmetric=TRUE, only.values=TRUE)
-                        if (eig.s$values[p] < (eps * eig.s$values[1])) {
-                            Sigmas[,,k]  <- Sigmas[,,k] + diag(p)*eps*max(diag(Sigmas[,,k]))
-                            eig.s <- eigen(Sigmas[,,k], symmetric=TRUE, only.values=TRUE)
-                            if (eig.s$values[p] < (eps * eig.s$values[1]))
-                                break ##not fixable easily, so bail out, try afresh
-                        } else {
-                            if (k == K)
-                                sigmas.stab <- T
-                        }
-                    }
-                }
+                minnks <- min(nks)
+                ## cat("minnks = ", minnks, "\n")
             }
-            if (!sigmas.stab)
-                old.inits  <- TRUE
+            pis <- nks/n
+            mus <- res$centers
+            for (k in 1:K) {
+                Sigmas[,,k] <- cov(y[res$partition==k,], use = "pairwise.complete.obs")
+                Sigmas[,,k]  <- Sigmas[,,k] + min(diag(Sigmas[,,k])) * diag(p)
+            }
         }
-        if (old.inits)
-            init  <- "uniform"
-    }
-    if (old.inits) {
+    } else     {
         minstable <- p/n
         CC <- rowSums(R) == 0
-            ## Uniform initialization of z.
-            if (K > 1 & is.null(Z)) {
-                nonstable <- TRUE
-                while(nonstable) {
-                    Z <- switch(init,
-                                uniform = {
-                                    matrix(runif(n*K, 0, 1), n, K)
-                                },
-                                kmeans = {
-                                    id <- kmeans(X[CC, ], nstart = 1e3, centers = K)
-                                    sapply(1:K, function(k) as.numeric(id$cluster == k))
-                                })
-                    Z <- Z/rowSums(Z)
-                    pis <- colMeans(Z)
-                    if (all(pis > minstable)) nonstable <- FALSE
-                }
-            } else if (K > 1 & !is.null(Z)) {
+        ## Uniform initialization of z.
+        if (K > 1 & is.null(Z)) {
+            nonstable <- TRUE
+            while(nonstable) {
+                Z <- switch(init,
+                            uniform = {
+                                matrix(runif(n*K, 0, 1), n, K)
+                            },
+                            kmeans = {
+                                id <- kmeans(X[CC, ], nstart = 1e3, centers = K)
+                                sapply(1:K, function(k) as.numeric(id$cluster == k))
+                            })
                 Z <- Z/rowSums(Z)
                 pis <- colMeans(Z)
-            } else {
-                Z <- matrix(1, n, K)
-                pis <- 1
+                if (all(pis > minstable)) nonstable <- FALSE
             }
-            ## Use updated IDs to set remaining parameters.
-            mus <- matrix(0, K, p)
-            Sigmas <- array(0, dim=c(p, p, K))
-            for (k in 1:K) {
-                wtk <- switch(init,
-                              uniform = {
-                                  Z[,k] * CC # set wt to zero if not complete case
-                              },
-                              kmeans = {
-                                  out <- rep(0, n)
-                                  out[CC] <- Z[,k]
-                                  out
-                              },
-                              ids = {
-                                  Z[,k] * CC
-                              })
-                wtcov <- cov.wt(X, wt = wtk, method = "ML")
-                mus[k,] <- wtcov$center
-                Sigmas[,,k] <- wtcov$cov
-            }
+        } else if (K > 1 & !is.null(Z)) {
+            Z <- Z/rowSums(Z)
+            pis <- colMeans(Z)
+        } else {
+            Z <- matrix(1, n, K)
+            pis <- 1
+        }
+        ## Use updated IDs to set remaining parameters.
+        mus <- matrix(0, K, p)
+        Sigmas <- array(0, dim=c(p, p, K))
+        for (k in 1:K) {
+            wtk <- switch(init,
+                          uniform = {
+                              Z[,k] * CC # set wt to zero if not complete case
+                          },
+                          kmeans = {
+                              out <- rep(0, n)
+                              out[CC] <- Z[,k]
+                              out
+                          },
+                          ids = {
+                              Z[,k] * CC
+                          })
+            wtcov <- cov.wt(X, wt = wtk, method = "ML")
+            mus[k,] <- wtcov$center
+            Sigmas[,,k] <- wtcov$cov
+        }
     }
     if ((K > 1) & sigma.constr) {
         wtdSigmas <- lapply(1:K, function(k) pis[k]*Sigmas[,,k])
@@ -183,7 +166,7 @@ get.init.val <- function(X, R, K, df.constr, sigma.constr, init = "smart-random"
         for (k in 1:K) Sigmas[,,k] <- S
     }
     out <- list(pi = pis, nu = nus, mu = mus, Sigma = Sigmas)
-    return(out)
+    out
 }
 
 ## Run EM.
@@ -233,39 +216,19 @@ run.EM <- function(init, nclusters, X, miss.grp, A, Ru, ps, max.iter, tol, conve
 }
 
 ## Run an initialization with short em -- don't keep track of LL, BIC, etc to save time
-run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df.constr, marginalization, init = "smart-random") {
-    ## print("entering run.em")
-    llhd = -Inf
-    while (!is.finite(llhd))    {
-        old <- get.init.val(X, R, nclusters, df.constr, sigma.constr, init = "uniform")
-        iter <- 0
-        while (iter < niter) {
-            new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df = TRUE, marginalization)
-            old <- new
-            test <- are.sigmas.valid(new$Sigma)
-            ## cat(iter,"in run.em", test, "\n")
-            if (!test) {
-                llhd <- -Inf
-                iter <- niter
-            } else {
-                L <- sapply(1:nclusters, function(k) {new$pi[k] * h(X, new$mu[k,], new$Sigma[,,k], new$nu[k], miss.grp, Ru)})
-                llhd <-  sum(log(rowSums(L)))
-                iter <- iter + 1
-            }
-        }
-    }
-    ## Final loglik
-    #    if (are.sigmas.valid(new$Sigma)) {
-#    L <- sapply(1:nclusters, function(k) {new$pi[k] * h.try(X, new$mu[k,], new$Sigma[,,k], new$nu[k], miss.grp, Ru)})
-#    llhd <-  sum(log(rowSums(L)))
-    ##    } else
-    ##       llhd <- -Inf
-#}
-    res <- list(estimates = new, loglik = llhd)
-    ## print("exiting run.em")
-    return(res)
+run.em <- function(nclusters, X, miss.grp, A, R, Ru, ps, niter, sigma.constr, df.constr, marginalization, init = "uniform") {
+  old <- get.init.val(X, R, nclusters, df.constr, sigma.constr, init)
+  iter <- 0
+  while (iter <= niter) {
+    iter <- iter + 1
+    new <- EM_iter(old, X, A, Ru, miss.grp, ps, sigma.constr, df.constr, approx.df = TRUE, marginalization)
+    old <- new
+  }
+  # Final loglik
+  L <- sapply(1:nclusters, function(k) {new$pi[k] * h(X, new$mu[k,], new$Sigma[,,k], new$nu[k], miss.grp, Ru)})
+  res <- list(estimates = new, loglik = sum(log(rowSums(L))))
+  return(res)
 }
-
 ##
 ## check for positive definiteness of the Sigmas
 ##
@@ -339,16 +302,16 @@ loglikelihood <- function(x, ests) {
 }
 
 
-#h.try <- function(x, mu, Sigma, nu, miss.grp, Ru) {
-#    try.h <- try(h(x, mu, Sigma, nu, miss.grp, Ru))
-#    print(try.h)
-#    print(length(class(try.h))) # appears to be matrix(array)
-#    print(length(class(try.h)))
-#    if (length(class(try.h)==1)) {
-#        if (class(try.h) == "try-error")
-#            browser() 
-#    }  else
-#        try.h
-#    h(x, mu, Sigma, nu, miss.grp, Ru)
-#}
+                                        #h.try <- function(x, mu, Sigma, nu, miss.grp, Ru) {
+                                        #    try.h <- try(h(x, mu, Sigma, nu, miss.grp, Ru))
+                                        #    print(try.h)
+                                        #    print(length(class(try.h))) # appears to be matrix(array)
+                                        #    print(length(class(try.h)))
+                                        #    if (length(class(try.h)==1)) {
+                                        #        if (class(try.h) == "try-error")
+                                        #            browser() 
+                                        #    }  else
+                                        #        try.h
+                                        #    h(x, mu, Sigma, nu, miss.grp, Ru)
+                                        #}
 
