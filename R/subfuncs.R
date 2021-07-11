@@ -19,15 +19,8 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
         pisnew <- 1
     }
     if (marginalization) {
-        ## calculate Q2 before
-        ##        Q2old <- Q2(x, z, w, oldpars$Sigma, oldpars$mu, miss.grp, Ru)
         ## update locations 
         musnew <- up_mu(x, z, w, A)
-        ##        Q2newMu <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
-        ##        if (Q2old > Q2newMu) {
-        ##            musnew <- oldpars$mu
-        ##    cat("Q2old = \n", Q2old, "Q2newMu" = Q2newMu, "musnew no good\n")
-        ##        }
     } else {
         K <- ncol(z)
         M <- length(unique(miss.grp))
@@ -46,14 +39,7 @@ EM_iter <- function(oldpars, x, A, Ru, miss.grp, ps, sigma.constr, df.constr, ap
         z <- up_Z(x, musnew, oldpars$Sigma, nusnew, pisnew, miss.grp, Ru)
     w <- up_W(x, musnew, oldpars$Sigma, nusnew, miss.grp, Ru)
     if (marginalization) {
-        ## calculate Q2 before
-        ##        Q2old <- Q2(x, z, w, oldpars$Sigma, musnew, miss.grp, Ru)
         Sigmasnew <- up_Sigma(x, z, w, musnew, A, sigma.constr)
-        ##        Q2newSigma <- Q2(x, z, w, Sigmasnew, musnew, miss.grp, Ru)
-        ##        if (Q2old > Q2newSigma) {
-        ##            Sigmasnew <- oldpars$Sigma
-        ## cat("Q2old = \n", Q2newMu, "Q2newSigma" = Q2newSigma, "Sigmasnew no good\n")
-        ##        }
     } else {
         Sigmasnew <- sapply(1:K, 
                             function(k) up_Sigmak_Lin(M, z[,k], w[,k], musnew[k,], oldpars$Sigma[,,k], xhat[[k]], miss.grp, SOiOEOO[[k]]), 
