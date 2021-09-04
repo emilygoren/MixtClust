@@ -1,8 +1,7 @@
 # MixtClust
 Fast model-based Clustering with t-mixtures for complete and incomplete data
 
-Note that library requires: maitra/kmmeans package
-
+Note that library requires *kmmeans* package at [GitHub](https://github.com/maitra/kmmeans).
 Installation: 
 
     devtools::install_github('maitra/kmeans')
