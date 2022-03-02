@@ -138,9 +138,7 @@ plot(BICs ~ Ks, pch = 20, xlab = 'Number of Clusters', ylab = 'BIC')
 
 }
 \references{
-Emily Goren & Ranjan Maitra, 2021.
-"Model-based clustering of partial records," arXiv:2103.16336.
-https://arxiv.org/abs/2103.16336
+Emily M. Goren & R. Maitra, 2022. "Fast model-based clustering of partial records." Stat, 11( 1), e416. https://doi.org/10.1002/sta4.416"
 
 Tsung-I Lin & Hsiu Ho & Pao Shen, 2009. "Computationally
 efficient learning of multivariate t mixture models with missing
