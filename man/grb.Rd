@@ -47,6 +47,6 @@ bursts," Monthly Notices of the Royal Astronomical Society,
 481(3): 3196-3209.
 https://doi.org/10.1093/mnras/sty1940
 
-Emily M. Goren & Ranjan Maitra, 2022. "Fast model-based clustering of partial records," Stat, 11( 1), e416. https://doi.org/10.1002/sta4.416 
+Emily M. Goren & Ranjan Maitra, 2022. "Fast model-based clustering of partial records," Stat, 11(1), e416. https://doi.org/10.1002/sta4.416 
 }
 \keyword{datasets}
