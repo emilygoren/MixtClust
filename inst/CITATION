@@ -1,0 +1,12 @@
+bibentry(
+    bibtype = "Article",
+    author =  c(person("Goren,", "Emily"),
+                    person("Maitra,", "Ranjan")),
+    title = "Fast model-based clustering of partial records",
+    journal = "Stat",
+    volume = "11",
+    number = "1",
+    pages = "e416",
+    doi = "https://doi.org/10.1002/sta4.416",
+    year = "2022"
+)
